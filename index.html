@@ -1,279 +1,668 @@
-from pathlib import Path
-import zipfile
 
-out = Path("/mnt/data/youtube_premium_ab_test")
-out.mkdir(exist_ok=True)
-
-html = r'''<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="YouTube Premium의 두 가지 혜택 메시지를 비교하는 설문 페이지입니다.">
-  <title>YouTube Premium | 혜택 비교</title>
-  <link rel="stylesheet" href="styles.css">
-  <!--
-    VWO / Wingify 설치:
-    VWO 대시보드에서 발급받은 SmartCode를 아래에 붙여 넣으세요.
-    실제 A/B 테스트를 진행한다면 VWO에서 이 페이지를 실험 URL로 등록하세요.
-  -->
-</head>
-<body>
-  <header class="site-header">
-    <a class="brand" href="#" aria-label="YouTube Premium 홈">
-      <span class="brand-mark"><span></span></span>
-      <span>YouTube <strong>Premium</strong></span>
-    </a>
-    <span class="header-note">PREMIUM EXPERIENCE</span>
-  </header>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YouTube Premium - Benefit Comparison</title>
 
-  <main>
-    <section class="intro">
-      <p class="eyebrow">YOUTUBE PREMIUM</p>
-      <h1>당신에게 더 매력적인 혜택은<br><span>무엇인가요?</span></h1>
-      <p class="intro-copy">같은 YouTube Premium, 두 가지 특별한 경험을 만나보세요.</p>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800;900&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: #fafafa;
+    color: #202124;
+}
+
+header {
+    height: 75px;
+    padding: 0 8%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: white;
+    border-bottom: 1px solid #eee;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 20px;
+    font-weight: 800;
+}
+
+.logo-icon {
+    width: 35px;
+    height: 25px;
+    background: #ff0033;
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.logo-icon::after {
+    content: "";
+    border-left: 10px solid white;
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+}
+
+.logo span {
+    font-weight: 900;
+}
+
+.header-label {
+    font-size: 11px;
+    color: #999;
+    letter-spacing: 2px;
+    font-weight: 700;
+}
+
+.container {
+    max-width: 1150px;
+    margin: auto;
+    padding: 75px 25px;
+}
+
+.hero {
+    text-align: center;
+    margin-bottom: 55px;
+}
+
+.hero-label {
+    color: #ff0033;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 3px;
+    margin-bottom: 18px;
+}
+
+.hero h1 {
+    font-size: clamp(32px, 5vw, 49px);
+    line-height: 1.4;
+    font-weight: 900;
+    letter-spacing: -2px;
+}
+
+.hero h1 span {
+    color: #ff0033;
+}
+
+.hero p {
+    color: #777;
+    margin-top: 15px;
+    font-size: 15px;
+}
+
+.cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+}
+
+.card {
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    border: 1px solid #eee;
+    box-shadow: 0 10px 35px rgba(0,0,0,0.05);
+    transition: transform .25s, box-shadow .25s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.09);
+}
+
+.card-header {
+    padding: 22px 27px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #eee;
+}
+
+.option {
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 2px;
+    color: #999;
+}
+
+.tag {
+    background: #fff0f1;
+    color: #ff0033;
+    padding: 7px 13px;
+    border-radius: 30px;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+/* OPTION A VISUAL */
+
+.visual-a {
+    height: 235px;
+    background: linear-gradient(135deg, #fff0f1, #ffdfe3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.video {
+    width: 65%;
+    max-width: 310px;
+    background: white;
+    padding: 9px;
+    border-radius: 12px;
+    box-shadow: 0 12px 30px rgba(0,0,0,.12);
+    transform: rotate(-2deg);
+}
+
+.video-screen {
+    height: 125px;
+    background: linear-gradient(145deg, #f5c7a5, #f3d8bc 50%, #78a99c 51%, #397c70);
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.play {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background: white;
+    color: #ff0033;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 17px;
+}
+
+.video-caption {
+    padding: 10px 3px 3px;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.no-ads {
+    position: absolute;
+    right: 7%;
+    bottom: 25px;
+    padding: 10px 14px;
+    background: white;
+    border-radius: 30px;
+    font-size: 10px;
+    font-weight: 900;
+    box-shadow: 0 5px 15px #00000015;
+}
+
+/* OPTION B VISUAL */
+
+.visual-b {
+    height: 235px;
+    background: linear-gradient(135deg, #eff0f6, #e2e5ef);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.phone {
+    width: 115px;
+    height: 195px;
+    border: 5px solid #292c37;
+    border-radius: 22px;
+    background: #292c37;
+    padding: 10px 7px;
+    transform: rotate(5deg);
+    box-shadow: 0 12px 25px #00000025;
+}
+
+.phone-screen {
+    height: 110px;
+    border-radius: 10px;
+    background: linear-gradient(145deg, #ffb18b, #f04a69, #57448b);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 900;
+    line-height: 1.5;
+}
+
+.music-bars {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    height: 28px;
+}
+
+.music-bars i {
+    display: block;
+    width: 4px;
+    border-radius: 5px;
+    background: #f4a0a9;
+    height: 10px;
+}
+
+.music-bars i:nth-child(2),
+.music-bars i:nth-child(6) {
+    height: 18px;
+}
+
+.music-bars i:nth-child(3),
+.music-bars i:nth-child(5) {
+    height: 23px;
+}
+
+.music-bars i:nth-child(4) {
+    height: 14px;
+}
+
+.phone-caption {
+    color: white;
+    font-size: 8px;
+    text-align: center;
+}
+
+.music-label {
+    position: absolute;
+    background: white;
+    border-radius: 9px;
+    padding: 10px 13px;
+    font-size: 10px;
+    font-weight: 800;
+    box-shadow: 0 5px 15px #00000010;
+}
+
+.label-one {
+    left: 5%;
+    top: 50px;
+}
+
+.label-two {
+    right: 4%;
+    bottom: 40px;
+}
+
+/* CARD CONTENT */
+
+.content {
+    padding: 27px 30px 30px;
+}
+
+.kicker {
+    color: #ff0033;
+    font-size: 11px;
+    font-weight: 800;
+    margin-bottom: 10px;
+}
+
+.content h2 {
+    font-size: 25px;
+    font-weight: 900;
+    line-height: 1.45;
+    letter-spacing: -1px;
+}
+
+.description {
+    color: #777;
+    font-size: 13px;
+    line-height: 1.7;
+    margin: 12px 0 22px;
+}
+
+.benefits {
+    list-style: none;
+    margin-bottom: 25px;
+}
+
+.benefits li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 13px;
+    color: #444;
+}
+
+.check {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #fff0f1;
+    color: #ff0033;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+}
+
+.button {
+    display: block;
+    width: 100%;
+    padding: 15px;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 9px;
+    background: #ff0033;
+    color: white;
+    font-size: 13px;
+    font-weight: 800;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    transition: opacity .2s;
+}
+
+.button:hover {
+    opacity: .85;
+}
+
+.button-b {
+    background: #242833;
+}
+
+/* MESSAGE */
+
+.note {
+    max-width: 800px;
+    margin: 35px auto 0;
+    background: white;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    padding: 22px;
+    text-align: center;
+    font-size: 14px;
+    color: #555;
+}
+
+.note strong {
+    color: #202124;
+}
+
+/* SURVEY */
+
+.survey {
+    text-align: center;
+    margin: 85px auto 0;
+    max-width: 700px;
+    border-top: 1px solid #eee;
+    padding-top: 45px;
+}
+
+.survey h2 {
+    font-size: 25px;
+    font-weight: 900;
+    margin-bottom: 12px;
+}
+
+.survey p {
+    font-size: 13px;
+    color: #777;
+    line-height: 1.8;
+}
+
+.survey-placeholder {
+    margin-top: 25px;
+    background: #f1f2f5;
+    border: 1px dashed #ccc;
+    border-radius: 10px;
+    padding: 22px;
+    font-size: 12px;
+    color: #777;
+}
+
+footer {
+    padding: 25px;
+    text-align: center;
+    color: #aaa;
+    font-size: 11px;
+    border-top: 1px solid #eee;
+}
+
+@media(max-width: 760px) {
+    header {
+        padding: 0 20px;
+        height: 65px;
+    }
+
+    .header-label {
+        font-size: 8px;
+    }
+
+    .container {
+        padding: 50px 18px;
+    }
+
+    .hero {
+        margin-bottom: 35px;
+    }
+
+    .hero h1 {
+        letter-spacing: -1px;
+    }
+
+    .cards {
+        grid-template-columns: 1fr;
+        gap: 22px;
+    }
+
+    .content {
+        padding: 24px;
+    }
+
+    .content h2 {
+        font-size: 23px;
+    }
+
+    .note {
+        font-size: 12px;
+        line-height: 1.7;
+    }
+
+    .survey {
+        margin-top: 60px;
+    }
+
+    .survey h2 {
+        font-size: 21px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <div class="logo">
+        <div class="logo-icon"></div>
+        YouTube <span>Premium</span>
+    </div>
+    <div class="header-label">PREMIUM EXPERIENCE</div>
+</header>
+
+<main class="container">
+
+    <section class="hero">
+        <div class="hero-label">YOUTUBE PREMIUM</div>
+        <h1>
+            당신에게 더 매력적인 혜택은<br>
+            <span>무엇인가요?</span>
+        </h1>
+        <p>같은 YouTube Premium, 두 가지 특별한 경험을 만나보세요.</p>
     </section>
 
-    <section class="plans" aria-label="YouTube Premium 혜택 비교">
-      <article class="benefit-card card-a">
-        <div class="card-topline">
-          <span class="variant-label">OPTION A</span>
-          <span class="focus-label">광고 제거 강조</span>
-        </div>
-        <div class="visual visual-a" aria-hidden="true">
-          <div class="video-window">
-            <div class="video-top"><i></i><i></i><i></i><span>youtube</span></div>
-            <div class="video-scene">
-              <div class="play-button">▶</div>
-              <div class="scene-sun"></div>
-              <div class="scene-hill hill-one"></div>
-              <div class="scene-hill hill-two"></div>
-            </div>
-            <div class="video-controls"><span></span><b>광고 없는 재생</b><small>00:42 / 12:08</small></div>
-          </div>
-          <div class="no-ad-badge"><span>✓</span> NO ADS</div>
-        </div>
-        <div class="card-content">
-          <p class="card-kicker">끊김 없는 몰입</p>
-          <h2>광고 없이 더 편하게<br> YouTube를 즐기세요!</h2>
-          <p class="card-description">원하는 콘텐츠에 방해받지 않고 온전히 집중해 보세요.</p>
-          <ul class="benefit-list">
-            <li><span class="check">✓</span> 광고 없이 시청</li>
-            <li><span class="check">✓</span> 백그라운드 재생</li>
-            <li><span class="check">✓</span> 오프라인 저장</li>
-          </ul>
-          <a class="card-button button-a" href="#survey">이 혜택 선택하기 <span>→</span></a>
-        </div>
-      </article>
+    <section class="cards">
 
-      <article class="benefit-card card-b">
-        <div class="card-topline">
-          <span class="variant-label">OPTION B</span>
-          <span class="focus-label">편의성 강조</span>
-        </div>
-        <div class="visual visual-b" aria-hidden="true">
-          <div class="phone">
-            <div class="phone-speaker"></div>
-            <div class="music-art">
-              <div class="art-orb orb-one"></div>
-              <div class="art-orb orb-two"></div>
-              <span>YOUR<br>FAVORITE<br>MUSIC</span>
+        <!-- OPTION A -->
+
+        <article class="card">
+
+            <div class="card-header">
+                <span class="option">OPTION A</span>
+                <span class="tag">광고 제거 강조</span>
             </div>
-            <div class="music-lines"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-            <div class="phone-caption">재생 중</div>
-          </div>
-          <div class="convenience-tag tag-one">♪ 화면을 꺼도 음악 재생</div>
-          <div class="convenience-tag tag-two">↓ 오프라인에서도 시청</div>
-        </div>
-        <div class="card-content">
-          <p class="card-kicker">언제 어디서나 자유롭게</p>
-          <h2>언제 어디서나<br>더 편리하게!</h2>
-          <p class="card-description">일상 속 다양한 순간에 YouTube를 자유롭게 이용하세요.</p>
-          <ul class="benefit-list">
-            <li><span class="check">✓</span> 화면을 꺼도 음악 재생</li>
-            <li><span class="check">✓</span> 오프라인 영상 시청</li>
-            <li><span class="check">✓</span> YouTube Music 이용</li>
-          </ul>
-          <a class="card-button button-b" href="#survey">이 혜택 선택하기 <span>→</span></a>
-        </div>
-      </article>
+
+            <div class="visual-a">
+                <div class="video">
+                    <div class="video-screen">
+                        <div class="play">▶</div>
+                    </div>
+                    <div class="video-caption">
+                        ▶ 광고 없는 재생
+                    </div>
+                </div>
+
+                <div class="no-ads">✓ NO ADS</div>
+            </div>
+
+            <div class="content">
+                <div class="kicker">끊김 없는 몰입</div>
+
+                <h2>
+                    광고 없이 더 편하게<br>
+                    YouTube를 즐기세요!
+                </h2>
+
+                <p class="description">
+                    원하는 콘텐츠에 방해받지 않고
+                    온전히 집중해 보세요.
+                </p>
+
+                <ul class="benefits">
+                    <li><span class="check">✓</span> 광고 없이 시청</li>
+                    <li><span class="check">✓</span> 백그라운드 재생</li>
+                    <li><span class="check">✓</span> 오프라인 저장</li>
+                </ul>
+
+                <button class="button" onclick="selectOption('A')">
+                    이 혜택 선택하기 →
+                </button>
+            </div>
+
+        </article>
+
+        <!-- OPTION B -->
+
+        <article class="card">
+
+            <div class="card-header">
+                <span class="option">OPTION B</span>
+                <span class="tag">편의성 강조</span>
+            </div>
+
+            <div class="visual-b">
+
+                <div class="phone">
+                    <div class="phone-screen">
+                        YOUR<br>FAVORITE<br>MUSIC
+                    </div>
+
+                    <div class="music-bars">
+                        <i></i><i></i><i></i><i></i>
+                        <i></i><i></i><i></i>
+                    </div>
+
+                    <div class="phone-caption">재생 중</div>
+                </div>
+
+                <div class="music-label label-one">
+                    ♪ 화면을 꺼도 음악 재생
+                </div>
+
+                <div class="music-label label-two">
+                    ↓ 오프라인에서도 시청
+                </div>
+
+            </div>
+
+            <div class="content">
+                <div class="kicker">언제 어디서나 자유롭게</div>
+
+                <h2>
+                    언제 어디서나<br>
+                    더 편리하게!
+                </h2>
+
+                <p class="description">
+                    일상 속 다양한 순간에
+                    YouTube를 자유롭게 이용하세요.
+                </p>
+
+                <ul class="benefits">
+                    <li><span class="check">✓</span> 화면을 꺼도 음악 재생</li>
+                    <li><span class="check">✓</span> 오프라인 영상 시청</li>
+                    <li><span class="check">✓</span> YouTube Music 이용</li>
+                </ul>
+
+                <button class="button button-b" onclick="selectOption('B')">
+                    이 혜택 선택하기 →
+                </button>
+            </div>
+
+        </article>
+
     </section>
 
     <section class="note">
-      <span class="note-icon">＝</span>
-      <p>서비스와 가격은 동일하며, <strong>강조하는 혜택만 다르게</strong> 제시합니다.</p>
+        서비스와 가격은 동일하게 유지하고,
+        <strong>강조하는 혜택만 다르게</strong> 제시합니다.
     </section>
 
     <section class="survey" id="survey">
-      <p class="eyebrow">YOUR OPINION MATTERS</p>
-      <h2>어떤 혜택이 더 마음에 드셨나요?</h2>
-      <p>위의 두 가지 메시지를 비교한 후, 가장 매력적으로 느껴진 혜택을 선택해 주세요.</p>
-      <div class="survey-hint">설문은 이 영역에 Wingify(VWO) 설문 또는 외부 설문 링크를 연결할 수 있습니다.</div>
-    </section>
-  </main>
 
-  <footer>
-    <span>YouTube Premium concept page</span>
-    <span>© 2026</span>
-  </footer>
+        <div class="hero-label">YOUR OPINION MATTERS</div>
+
+        <h2>어떤 혜택이 더 마음에 드셨나요?</h2>
+
+        <p>
+            두 가지 메시지를 비교한 후,<br>
+            가장 매력적으로 느껴진 혜택을 선택해 주세요.
+        </p>
+
+        <div class="survey-placeholder" id="survey-result">
+            선택하신 결과가 여기에 표시됩니다.
+        </div>
+
+    </section>
+
+</main>
+
+<footer>
+    YouTube Premium Concept Page · 2026
+</footer>
+
+<script>
+function selectOption(option) {
+    const result = document.getElementById("survey-result");
+
+    result.innerHTML =
+        "선택하신 옵션: <strong>OPTION " +
+        option +
+        "</strong><br><br>설문에 참여해 주셔서 감사합니다.";
+
+    result.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+    });
+}
+</script>
+
 </body>
 </html>
-'''
-
-css = r'''@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800;900&display=swap');
-
-:root {
-  --ink: #17191f;
-  --muted: #70747e;
-  --red: #f21d2f;
-  --line: #eceef2;
-  --surface: #ffffff;
-  --soft: #f7f8fa;
-}
-* { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
-body {
-  margin: 0;
-  background: #fafafa;
-  color: var(--ink);
-  font-family: 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif;
-  -webkit-font-smoothing: antialiased;
-}
-.site-header {
-  height: 76px;
-  padding: 0 max(6vw, calc((100vw - 1180px)/2));
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: rgba(255,255,255,.92);
-  border-bottom: 1px solid #f0f0f0;
-}
-.brand { display:flex; align-items:center; gap:10px; color:var(--ink); text-decoration:none; font-size:18px; font-weight:700; letter-spacing:-.6px; }
-.brand strong { font-weight:900; }
-.brand-mark { width:31px; height:22px; background:var(--red); border-radius:7px; display:grid; place-items:center; }
-.brand-mark span { width:0; height:0; border-top:6px solid transparent; border-bottom:6px solid transparent; border-left:9px solid white; margin-left:2px; }
-.header-note { color:#9a9da5; font-size:10px; font-weight:800; letter-spacing:2px; }
-main { max-width:1180px; margin:0 auto; padding:76px 28px 60px; }
-.intro { text-align:center; margin-bottom:48px; }
-.eyebrow { color:var(--red); font-size:11px; font-weight:900; letter-spacing:2.4px; margin:0 0 15px; }
-h1 { margin:0; font-size:clamp(34px, 5vw, 54px); line-height:1.23; letter-spacing:-2.8px; font-weight:900; }
-h1 span { color:var(--red); }
-.intro-copy { margin:18px 0 0; color:var(--muted); font-size:15px; }
-.plans { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:24px; align-items:stretch; }
-.benefit-card { background:var(--surface); border:1px solid #eceef2; border-radius:22px; overflow:hidden; box-shadow:0 12px 36px rgba(25,30,45,.055); }
-.card-topline { height:62px; display:flex; align-items:center; justify-content:space-between; padding:0 27px; border-bottom:1px solid #f0f1f4; }
-.variant-label { color:#a0a3ab; font-size:10px; font-weight:900; letter-spacing:1.8px; }
-.focus-label { color:var(--red); background:#fff0f1; padding:7px 11px; border-radius:30px; font-size:11px; font-weight:800; }
-.visual { height:240px; position:relative; display:flex; align-items:center; justify-content:center; overflow:hidden; }
-.visual-a { background:linear-gradient(135deg,#fff0f1,#ffe2e4); }
-.video-window { width:67%; max-width:330px; background:white; border-radius:12px; padding:8px; box-shadow:0 14px 32px rgba(113,38,47,.14); transform:rotate(-2deg); }
-.video-top { height:19px; display:flex; align-items:center; gap:4px; color:#222; font-size:9px; font-weight:900; }
-.video-top i { width:5px;height:5px;border-radius:50%;background:#d6d8de; }
-.video-top span { margin-left:6px; }
-.video-scene { height:132px; position:relative; overflow:hidden; border-radius:6px; background:linear-gradient(145deg,#f8c6a2 0%,#f6d9b7 48%,#9ac5c1 49%,#528d87 100%); }
-.scene-sun { position:absolute; width:39px;height:39px;border-radius:50%;background:#fff0bd;top:20px;right:42px; }
-.scene-hill { position:absolute; width:190px;height:100px;border-radius:50% 50% 0 0;bottom:-54px; }
-.hill-one { left:-24px;background:#5e9b8c;transform:rotate(-12deg); }
-.hill-two { right:-45px;background:#39776e;transform:rotate(14deg); }
-.play-button { position:absolute; z-index:2; left:50%;top:50%;transform:translate(-50%,-50%);width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.9);color:var(--red);display:grid;place-items:center;font-size:15px;padding-left:3px; }
-.video-controls { height:24px; display:flex; align-items:center; gap:7px; font-size:8px; color:#737780; }
-.video-controls span { height:3px; width:27%; background:var(--red); border-radius:5px; }
-.video-controls b { color:#30333a; font-size:8px; }
-.video-controls small { margin-left:auto; font-size:7px; }
-.no-ad-badge { position:absolute; right:9%; bottom:27px; background:#fff; color:#252832; padding:10px 14px; border-radius:30px; box-shadow:0 8px 20px rgba(113,38,47,.13); font-size:10px; font-weight:900; letter-spacing:1px; }
-.no-ad-badge span { display:inline-grid;place-items:center;width:17px;height:17px;background:#20b77a;color:#fff;border-radius:50%;margin-right:5px; }
-.visual-b { background:linear-gradient(135deg,#f1f2f7,#e8eaf2); }
-.phone { width:122px;height:207px;background:#22252e;border:5px solid #353945;border-radius:22px;padding:10px 8px;position:relative;box-shadow:0 15px 28px rgba(35,38,50,.2); transform:rotate(5deg); }
-.phone-speaker { width:35px;height:4px;background:#555966;border-radius:5px;margin:0 auto 9px; }
-.music-art { height:105px;border-radius:9px;background:linear-gradient(145deg,#ff9c78,#f24c62 55%,#563d82);position:relative;overflow:hidden;padding:13px 8px;color:white;font-size:10px;line-height:1.25;font-weight:900;letter-spacing:.7px; }
-.art-orb { position:absolute;border:1px solid rgba(255,255,255,.55);border-radius:50%; }
-.orb-one { width:75px;height:75px;right:-22px;top:-13px; }
-.orb-two { width:52px;height:52px;right:-9px;top:0; }
-.music-art span { position:relative;z-index:2; }
-.music-lines { display:flex;align-items:center;justify-content:center;gap:3px;height:24px;margin-top:7px; }
-.music-lines i { width:3px;border-radius:4px;background:#f7a0a7;height:8px; }
-.music-lines i:nth-child(2),.music-lines i:nth-child(6) {height:15px}
-.music-lines i:nth-child(3),.music-lines i:nth-child(5) {height:20px}
-.music-lines i:nth-child(4) {height:12px}
-.phone-caption { color:#fff;text-align:center;font-size:8px;margin-top:1px; }
-.convenience-tag { position:absolute;background:#fff;border:1px solid #eff0f4;border-radius:9px;padding:10px 13px;font-size:10px;font-weight:800;color:#343743;box-shadow:0 8px 20px rgba(37,42,58,.08); }
-.tag-one { left:7%;top:55px; }
-.tag-two { right:5%;bottom:42px; }
-.card-content { padding:27px 30px 30px; }
-.card-kicker { margin:0 0 9px;color:var(--red);font-size:11px;font-weight:800;letter-spacing:.3px; }
-.card-content h2 { margin:0;font-size:25px;line-height:1.42;letter-spacing:-1.2px;font-weight:900; }
-.card-description { margin:11px 0 20px;color:var(--muted);font-size:13px;line-height:1.7; }
-.benefit-list { list-style:none;padding:0;margin:0 0 25px;display:grid;gap:12px; }
-.benefit-list li { display:flex;align-items:center;gap:10px;color:#414550;font-size:13px;font-weight:600; }
-.check { width:19px;height:19px;display:grid;place-items:center;border-radius:50%;background:#fff0f1;color:var(--red);font-size:11px;font-weight:900; }
-.card-button { height:48px;display:flex;align-items:center;justify-content:center;gap:12px;border-radius:10px;text-decoration:none;font-size:13px;font-weight:800;transition:transform .2s,box-shadow .2s; }
-.card-button:hover { transform:translateY(-2px);box-shadow:0 8px 18px rgba(242,29,47,.15); }
-.button-a { background:var(--red);color:#fff; }
-.button-b { background:#242833;color:#fff; }
-.card-button span { font-size:17px; }
-.note { margin:34px auto 0;padding:20px 24px;max-width:800px;display:flex;align-items:center;justify-content:center;gap:12px;background:#fff;border:1px solid var(--line);border-radius:13px;text-align:center; }
-.note-icon { color:var(--red);font-size:22px;font-weight:900; }
-.note p { margin:0;color:#555a65;font-size:14px; }
-.note strong { color:var(--ink); }
-.survey { margin:82px auto 0;max-width:700px;text-align:center;padding:40px 25px;border-top:1px solid var(--line); }
-.survey h2 { margin:0 0 12px;font-size:25px;letter-spacing:-1px; }
-.survey > p:not(.eyebrow) { margin:0;color:var(--muted);font-size:13px;line-height:1.7; }
-.survey-hint { margin-top:24px;padding:17px;background:#f1f2f5;border:1px dashed #cdd0d8;border-radius:10px;color:#777c87;font-size:12px; }
-footer { max-width:1180px;margin:0 auto;padding:22px 28px 30px;display:flex;justify-content:space-between;color:#a1a4ac;font-size:10px;letter-spacing:.4px; }
-
-@media (max-width:760px) {
-  .site-header { height:64px;padding:0 20px; }
-  .header-note { font-size:8px;letter-spacing:1.2px; }
-  main { padding:54px 18px 35px; }
-  .intro { margin-bottom:32px; }
-  h1 { letter-spacing:-1.8px; }
-  .intro-copy { font-size:13px; }
-  .plans { grid-template-columns:1fr;gap:18px;max-width:500px;margin:0 auto; }
-  .visual { height:220px; }
-  .card-content { padding:24px 23px 25px; }
-  .card-content h2 { font-size:23px; }
-  .note { margin-top:24px;padding:17px 15px; }
-  .note p { font-size:12px;line-height:1.6; }
-  .survey { margin-top:58px;padding:35px 8px; }
-  .survey h2 { font-size:21px; }
-}
-@media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior:auto; }
-  *,*::before,*::after { transition:none !important; }
-}
-'''
-
-readme = """YouTube Premium A/B message comparison page
-
-Files
-- index.html: page structure and Korean copy
-- styles.css: responsive styling and CSS illustrations
-
-Preview
-Open index.html in a browser.
-
-Wingify / VWO
-1. Create a VWO account/project and choose the experiment type you need.
-2. Copy the SmartCode provided by VWO.
-3. Paste the SmartCode into the <head> of index.html where the VWO comment is located.
-4. Add the page URL as the experiment URL in VWO.
-5. Connect the survey/goal you want to measure. The #survey section is a placeholder for your VWO survey or an external survey embed/link.
-
-Note
-This page presents A and B together for a side-by-side preference survey. If you want a true randomized A/B test (each visitor sees only A or only B), create two page variants or configure the variation logic in VWO rather than showing both cards to every visitor.
-"""
-
-(out / "index.html").write_text(html, encoding="utf-8")
-(out / "styles.css").write_text(css, encoding="utf-8")
-(out / "README.txt").write_text(readme, encoding="utf-8")
-
-zip_path = Path("/mnt/data/youtube_premium_ab_test.zip")
-with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as z:
-    for p in out.iterdir():
-        z.write(p, arcname=p.name)
-
-print("Created:")
-print(out / "index.html")
-print(out / "styles.css")
-print(out / "README.txt")
-print(zip_path)
