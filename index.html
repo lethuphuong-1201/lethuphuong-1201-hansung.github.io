@@ -406,6 +406,7 @@ footer { padding: 22px; text-align: center; color: #a1a4ac; font-size: 10px; }
           <li><span class="check">✓</span> 광고 없이 시청</li>
           <li><span class="check">✓</span> 백그라운드 재생</li>
           <li><span class="check">✓</span> 오프라인 저장</li>
+          <li><span class="check">✓</span> 광고 없이</li>
         </ul>
         <a class="cta" id="cta-a" href="#survey">자세히 알아보기 <span>→</span></a>
       </div>
@@ -434,6 +435,7 @@ footer { padding: 22px; text-align: center; color: #a1a4ac; font-size: 10px; }
           <li><span class="check">✓</span> 화면을 꺼도 음악 재생</li>
           <li><span class="check">✓</span> 오프라인 영상 시청</li>
           <li><span class="check">✓</span> YouTube Music 이용</li>
+          <li><span class="check">✓</span> 광고 없이</li>
         </ul>
         <a class="cta" id="cta-b" href="#survey">자세히 알아보기 <span>→</span></a>
       </div>
@@ -454,7 +456,3 @@ footer { padding: 22px; text-align: center; color: #a1a4ac; font-size: 10px; }
 </body>
 </html>
 '''
-
-path = Path("/mnt/data/index.html")
-path.write_text(html, encoding="utf-8")
-print(f"Created {path} ({path.stat().st_size:,} bytes)")
