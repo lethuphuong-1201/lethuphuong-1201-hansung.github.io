@@ -88,10 +88,14 @@ h1 {
 h1 span { color: var(--red); }
 .hero-copy { margin: 15px 0 0; color: var(--muted); font-size: 14px; }
 
-/* Only the assigned variation is displayed. */
-.variant { display: none; }
-html.group-a .variant-a,
-html.group-b .variant-b { display: block; }
+/* Website A only */
+.variant {
+  display: none;
+}
+
+.variant-a {
+  display: block;
+}
 
 .experience {
   max-width: 760px;
@@ -338,31 +342,6 @@ footer { padding: 22px; text-align: center; color: #a1a4ac; font-size: 10px; }
 }
 </style>
 
-<script>
-/*
-  Random 50/50 visitor assignment.
-  The assigned group is saved in localStorage so the same browser
-  keeps seeing the same version on later visits.
-*/
-(function () {
-  const key = "youtube_premium_ab_group_v1";
-  let group;
-
-  try {
-    group = localStorage.getItem(key);
-    if (group !== "A" && group !== "B") {
-      group = Math.random() < 0.5 ? "A" : "B";
-      localStorage.setItem(key, group);
-    }
-  } catch (error) {
-    // Fallback if browser storage is blocked.
-    group = Math.random() < 0.5 ? "A" : "B";
-  }
-
-  window.YT_PREMIUM_AB_GROUP = group;
-  document.documentElement.classList.add(group === "A" ? "group-a" : "group-b");
-})();
-</script>
 </head>
 
 <body>
@@ -409,35 +388,6 @@ footer { padding: 22px; text-align: center; color: #a1a4ac; font-size: 10px; }
           <li><span class="check">✓</span> 광고 없이</li>
         </ul>
         <a class="cta" id="cta-a" href="#survey">자세히 알아보기 <span>→</span></a>
-      </div>
-    </article>
-  </section>
-
-  <!-- GROUP B: convenience message -->
-  <section class="variant variant-b" aria-label="YouTube Premium 혜택">
-    <article class="experience">
-      <div class="visual visual-b" aria-hidden="true">
-        <div class="phone">
-          <div class="speaker"></div>
-          <div class="album">YOUR<br>FAVORITE<br>MUSIC</div>
-          <div class="equalizer"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-          <div class="phone-caption">재생 중</div>
-        </div>
-        <div class="float-label float-one">♪ 화면을 꺼도 음악 재생</div>
-        <div class="float-label float-two">↓ 오프라인에서도 시청</div>
-      </div>
-
-      <div class="content">
-        <p class="kicker">언제 어디서나 자유롭게</p>
-        <h2>언제 어디서나<br>더 편리하게!</h2>
-        <p class="description">일상 속 다양한 순간에 YouTube를 자유롭게 이용하세요.</p>
-        <ul class="benefits">
-          <li><span class="check">✓</span> 화면을 꺼도 음악 재생</li>
-          <li><span class="check">✓</span> 오프라인 영상 시청</li>
-          <li><span class="check">✓</span> YouTube Music 이용</li>
-          <li><span class="check">✓</span> 광고 없이</li>
-        </ul>
-        <a class="cta" id="cta-b" href="#survey">자세히 알아보기 <span>→</span></a>
       </div>
     </article>
   </section>
